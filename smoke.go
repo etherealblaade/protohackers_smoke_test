@@ -38,10 +38,10 @@ func handleConnection(conn net.Conn) {
 				fmt.Println("Read error:", err)
 			}
 
-			return
+			if _, werr := conn.Write(buf[:n]); werr != nil {
+				log.Println("write error:", werr)
+				return
+			}
 		}
-
-		msg := string(buf[:n])
-		fmt.Println(msg)
 	}
 }
