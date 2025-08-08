@@ -1,47 +1,27 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
 )
 
 func main() {
-	listener, err := net.Listen("tcp", "0.0.0.0:6359")
+	l, err := net.Listen("tcp", "0.0.0.0:6359")
 	if err != nil {
-		log.Fatal("error occured when listening to TCP socket: ", err)
+		log.Fatal("listen:", err)
 	}
-
-	fmt.Println("Started TCP server at port :6359")
+	log.Println("TCP echo on :6359")
 
 	for {
-		conn, err := listener.Accept()
+		conn, err := l.Accept()
 		if err != nil {
-			log.Println("Accept error:", err)
+			log.Println("accept:", err)
 			continue
 		}
-		go handleConnection(conn)
-	}
-}
-
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
-
-	buf := make([]byte, 1024)
-	for {
-		n, err := conn.Read(buf)
-		if err != nil {
-			if err == io.EOF {
-				fmt.Println("Client disconnected:", conn.RemoteAddr())
-			} else {
-				fmt.Println("Read error:", err)
-			}
-
-			if _, werr := conn.Write(buf[:n]); werr != nil {
-				log.Println("write error:", werr)
-				return
-			}
-		}
+		go func(c net.Conn) {
+			defer c.Close()
+			_, _ = io.Copy(c, c)
+		}(conn)
 	}
 }
